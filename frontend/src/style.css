@@ -1,0 +1,93 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-family: "Montserrat", sans-serif;
+}
+
+::selection {
+  background: #f3f4f6;
+}
+::-moz-selection {
+  background: #f3f4f6; /* For Firefox */
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #f3f4f6; /* Focus ring color */
+}
+
+.vch__legend {
+  display: none !important;
+}
+
+.vch__legend__wrapper {
+  display: none !important;
+}
+
+.calendar-header {
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+}
+
+.calendar-header__period-name {
+  font-size: 0.875rem !important;
+}
+
+@media (min-width: 640px) {
+  .calendar-header__period-name {
+    font-size: 1rem !important;
+  }
+}
+
+.calendar-header__period {
+  margin-left: auto !important;
+  gap: 2rem !important;
+}
+
+.date-picker__value-display {
+  padding: 0 !important;
+}
+
+.calendar-header__chevron-arrow-left,
+.calendar-header__chevron-arrow-right {
+  height: 1rem;
+  width: 1rem;
+}
+
+.calendar-header__mode-picker {
+  display: none !important;
+}
+
+.calendar-week__event-info-wrapper {
+  color: black !important;
+  background-color: #f3f4f6 !important;
+  border: 1px solid white !important;
+  border-radius: 0.5rem !important;
+}
+
+.calendar-week__event-blend-out {
+  background-image: linear-gradient(transparent, #f3f4f6) !important;
+}
+
+.calendar-root,
+.date-picker-root {
+  --qalendar-theme-color: #f3f4f6 !important;
+  --qalendar-blue: black !important;
+}
+
+.ag-theme-quartz {
+  --ag-active-color: #f3f4f6 !important;
+  --ag-font-size: 12px !important; /* Tailwind's text-xs equivalent */
+  --ag-header-height: 40px !important;
+  --ag-row-height: 40px !important;
+  --ag-selected-row-background-color: #f3f4f6 !important;
+}
+
+@media (min-width: 640px) {
+  .ag-theme-quartz {
+    --ag-font-size: 14px !important; /* Tailwind's text-sm equivalent */
+  }
+}

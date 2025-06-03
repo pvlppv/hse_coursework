@@ -1,0 +1,72 @@
+services:
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - './nginx.conf:/etc/nginx/nginx.conf'
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - pvlppv
+
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8000:8000"
+    networks:
+      - pvlppv
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/backend
+    working_dir: /backend
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - pvlppv
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:13
+    ports:
+      - "5433:5432"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # - /root/pvlppv-website/:/var/lib/postgresql/backup
+    restart: unless-stopped
+    networks:
+      - pvlppv
+    command: ["docker-entrypoint.sh", "postgres", "-c", "max_connections=200"]
+
+  redis:
+    image: redis:7
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - pvlppv
+
+networks:
+  pvlppv:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
