@@ -3,7 +3,7 @@
         <div class="w-full space-y-2">
             <div class="flex justify-between items-center mb-4">
                 <h1 class="text-xl sm:text-2xl font-semibold">База данных</h1>
-                <router-link to="/pvlppv" class="text-sm text-gray-600 hover:text-gray-800">
+                <router-link to="/pvlppv" class="text-sm text-gray-600 hover:text-gray-600">
                     Вернуться назад
                 </router-link>
             </div>

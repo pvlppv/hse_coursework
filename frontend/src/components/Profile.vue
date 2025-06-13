@@ -7,7 +7,7 @@
         :active-sessions="activeSessions"
       />
       <hr class="my-5 border-gray-300">
-      <Sessions 
+      <SessionsList 
         :user-id="data.id"
         @update:show-add-modal="showAddModal = $event"
         @update:active-sessions="activeSessions = $event"
@@ -19,7 +19,7 @@
 <script setup>
 // Components
 import Header from './Header.vue';
-import Sessions from './Sessions.vue';
+import SessionsList from './SessionsList.vue';
 
 // Composables
 import { computed, ref, watch } from 'vue';

@@ -95,6 +95,8 @@ class Session(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     is_paused = Column(Boolean, default=False)
     pause_start_time = Column(TIMESTAMP(timezone=True), nullable=True)
+    goal_type = Column(String, nullable=False)
+    metric = Column(JSONB, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(
         TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now()

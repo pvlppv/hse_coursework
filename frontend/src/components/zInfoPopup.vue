@@ -8,13 +8,26 @@
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
+      <div
+        v-if="isOpen"
+        class="fixed inset-0 bg-black bg-opacity-50 z-[9998]"
+      />
+    </Transition>
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-95"
+    >
       <div 
         v-if="isOpen"
         @click="onClose"
         @wheel.prevent
         @scroll.prevent
         @touchmove.prevent
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-[10001]"
+        class="fixed inset-0 flex items-center justify-center p-2 sm:p-4 z-[10001]"
       >
         <div 
           @click.stop

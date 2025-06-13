@@ -46,7 +46,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import HeatmapModal from './HeatmapModal.vue';
+import HeatmapModal from './zHeatmapModal.vue';
 import { useFetch } from '../composables/utils.js';
 
 const props = defineProps({

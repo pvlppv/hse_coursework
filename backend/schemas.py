@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi_users import schemas
 from pydantic import computed_field
 
+
 # Post
 class PostResponse(BaseModel):
     id: int
@@ -213,11 +214,20 @@ class TableRename(BaseModel):
 
 
 # Sessions
+class MetricBase(BaseModel):
+    type: str
+    operator: str
+    targetValue: int
+    filterValue: Optional[str] = None
+
+
 class SessionBase(BaseModel):
     title: str
     end_time: datetime
     data_collection_methods: List[str]
     visualization_preferences: List[str]
+    goal_type: Optional[str] = "observe"
+    metric: Optional[MetricBase] = None
 
 
 class SessionCreate(SessionBase):
@@ -229,6 +239,8 @@ class SessionUpdate(BaseModel):
     end_time: Optional[datetime] = None
     data_collection_methods: Optional[List[str]] = None
     visualization_preferences: Optional[List[str]] = None
+    goal_type: Optional[str] = None
+    metric: Optional[MetricBase] = None
 
 
 class Session(SessionBase):
@@ -239,7 +251,7 @@ class Session(SessionBase):
     pause_start_time: Optional[datetime]
     created_at: datetime
     updated_at: datetime
-    
+
     @computed_field
     @property
     def time_remaining(self) -> float:
