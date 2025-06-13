@@ -1,38 +1,18 @@
 <template>
-    <div class="h-screen w-full flex flex-col justify-center items-center">
-        <!-- Hero Text -->
-        <div class="max-w-lg text-center mb-14 px-4">
-            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">
-                Привет ещё раз ахаха
-            </h1>
-            <p class="mt-4 text-sm sm:text-base text-gray-600 leading-relaxed">
-                Зарегистрируйся ниже и отпиши мне, я приму тебя, а после переходи в логин (pvlppv.ru/login), логинься, и тебя перекинет на твою личную страницу, где ты уже сможешь настроить весь функционал.
-            </p>
-        </div>
-
+    <div class="min-h-screen bg-black font-montserrat w-full flex flex-col justify-center items-center p-4">
         <!-- Registration Form -->
-        <div class="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
-            <h2 class="text-lg font-semibold text-gray-800 text-center mb-4">
+        <div class="w-full max-w-md p-6 rounded-lg backdrop-blur-sm border border-white">
+            <h2 class="text-lg font-semibold text-white text-center mb-4">
                 Регистрация
             </h2>
 
-            <form @submit.prevent="handleRegister" class="space-y-4">
-                <!-- <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700">
-                        Имя пользователя
-                    </label>
-                    <input
-                        v-model="username"
-                        id="username"
-                        type="text"
-                        required
-                        placeholder="Введите имя пользователя"
-                        class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-600"
-                    />
-                </div> -->
+            <div v-if="errorMessage" class="p-3 mb-4 text-sm text-red-400 border border-red-400/50 rounded-lg bg-red-400/10" role="alert">
+                {{ formatErrorMessage(errorMessage) }}
+            </div>
 
+            <form @submit.prevent="handleRegister" class="space-y-4">
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">
+                    <label for="email" class="block text-sm font-medium text-white/80">
                         Почта
                     </label>
                     <input
@@ -40,13 +20,13 @@
                         id="email"
                         type="email"
                         required
-                        placeholder="Введите почту"
-                        class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-600"
+                        placeholder="Введи почту"
+                        class="mt-1 w-full px-3 py-2 border bg-black border-white rounded-lg focus:outline-none focus:border-white/50 text-white placeholder:text-white/50"
                     />
                 </div>
 
                 <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700">
+                    <label for="password" class="block text-sm font-medium text-white/80">
                         Пароль
                     </label>
                     <input
@@ -54,22 +34,22 @@
                         id="password"
                         type="password"
                         required
-                        placeholder="Введите пароль"
-                        class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-600"
+                        placeholder="Введи пароль"
+                        class="mt-1 w-full px-3 py-2 border bg-black border-white rounded-lg focus:outline-none focus:border-white/50 text-white placeholder:text-white/50"
                     />
                 </div>
 
                 <button
                     type="submit"
-                    class="w-full px-4 py-2 rounded-lg border border-gray-300 transition-all duration-300 hover:border-gray-100 hover:bg-gray-100"
+                    class="w-full px-4 py-2 rounded-lg border border-white text-white hover:bg-white/20 transition-all duration-300"
                 >
-                    Регистрация
+                    Зарегистрироваться
                 </button>
             </form>
 
             <div class="mt-4 text-center text-sm">
-                <span class="text-gray-600">Уже есть аккаунт? </span>
-                <router-link to="/login" class="text-gray-600 underline">
+                <span class="text-white/60">Уже есть аккаунт? </span>
+                <router-link to="/login" class="text-white underline hover:text-white/80">
                     Войти
                 </router-link>
             </div>
@@ -88,6 +68,27 @@ const password = ref('');
 const username = ref('');
 const errorMessage = ref(null);
 const router = useRouter();
+
+const formatErrorMessage = (error) => {
+    if (typeof error === 'string') {
+        return error;
+    }
+    if (error && error.detail) {
+        if (typeof error.detail === 'string') {
+            switch (error.detail) {
+                case 'REGISTER_USER_ALREADY_EXISTS':
+                    return 'Пользователь с такой почтой уже существует.';
+                case 'LOGIN_BAD_CREDENTIALS':
+                    return 'Неверная почта или пароль.';
+                default:
+                    return error.detail;
+            }
+        } else if (Array.isArray(error.detail)) {
+            return error.detail.map(d => `${d.loc.join(' -> ')}: ${d.msg}`).join('; ');
+        }
+    }
+    return 'Произошла неизвестная ошибка.';
+};
 
 onMounted(async () => {
     const { data: userData, fetchData: checkAuth } = useFetch(`${apiBaseUrl}/api/users/me`);
@@ -143,7 +144,7 @@ const handleRegister = async () => {
             return;
         }
 
-        router.push('/login');
+        router.push('/profile');
     } catch (error) {
         errorMessage.value = error.message;
     }

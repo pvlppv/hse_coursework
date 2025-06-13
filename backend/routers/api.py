@@ -57,6 +57,10 @@ class UserManager(UUIDIDMixin, BaseUserManager[models.User, UUID]):
     async def on_after_register(
         self, user: models.User, request: Optional[Request] = None
     ):
+        # Set username to the part of email before @
+        if not user.username and user.email:
+            user.username = user.email.split("@")[0]
+            await self.user_db.update(user, {"username": user.username})
         print(f"User {user.id} has registered.")
 
     async def on_after_forgot_password(
@@ -90,7 +94,7 @@ fastapi_users = FastAPIUsers[models.User, UUID](get_user_manager, [auth_backend]
 current_user = fastapi_users.current_user()
 
 api_router.include_router(
-    fastapi_users.get_auth_router(auth_backend, requires_verification=True),
+    fastapi_users.get_auth_router(auth_backend, requires_verification=False),
     prefix="/auth/jwt",
     tags=["auth"],
 )
@@ -363,31 +367,17 @@ async def create_table(
         )
 
 
-@api_router.delete("/users/table/{table_name}", response_model=dict)
+@api_router.delete("/users/table/{table_name}/", response_model=dict)
 async def delete_table(
     table_name: str,
     user: models.User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Delete a table for the user."""
     try:
-        if not await crud.verify_table_ownership(str(user.id), table_name):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not authorized to delete this table",
-            )
         await crud.delete_table(db, table_name, str(user.id))
-        return {
-            "status": "success",
-            "message": f"Table {table_name} deleted successfully",
-        }
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        return {"message": f"Table {table_name} deleted successfully"}
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Internal server error: {str(e)}",
-        )
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @api_router.put("/users/table/{old_name}/rename/", response_model=dict)
@@ -404,9 +394,7 @@ async def rename_table(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not authorized to rename this table",
             )
-        return await crud.rename_table(
-            db, old_name, new_name, str(user.id)
-        )
+        return await crud.rename_table(db, old_name, new_name, str(user.id))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -415,7 +403,7 @@ async def rename_table(
 async def get_table_rows(
     table_name: str,
     skip: int = 0,
-    limit: int = 10,
+    limit: int = 1000000,  # until implemented lazy loading at frontend
     db: AsyncSession = Depends(get_db),
     user: models.User = Depends(current_user),
 ):

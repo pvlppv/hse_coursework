@@ -6,9 +6,9 @@
     >
       <div class="container mx-auto px-6 h-20 flex items-center justify-between">
         <img src="../assets/thoughty_logo.svg" alt="Соти" class="w-24 h-24 sm:w-32 sm:h-32">
-        <router-link 
-          to="/profile"
+        <button 
           class="border border-white px-5 py-1.5 rounded-lg text-white text-base sm:text-lg hover:bg-white/10 transition-colors duration-500 group"
+          @click="scrollToServices"
         >
           <span class="relative z-10 flex items-center gap-2">
             Войти
@@ -16,7 +16,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
             </svg>
           </span>
-        </router-link>
+        </button>
 
       </div>
     </nav>
@@ -58,9 +58,69 @@
       </div>
     </main>
 
+    <!-- Services Section -->
+    <section id="services" class="min-h-screen w-full bg-black flex flex-col items-center px-4 sm:px-8 py-12">
+      <div class="w-full text-center">
+        <h2 class="text-5xl font-bold text-white uppercase tracking-widest">Кратко</h2>
+      </div>
+
+      <div class="flex flex-col items-center w-full max-w-6xl mt-8">
+        <p class="text-lg text-white/80 max-w-3xl text-center mb-8">
+            Соти — это уже 2 сервиса, посвящённые работе над ментальным здоровьем, выбирай:
+        </p>
+
+        <div class="flex flex-col md:flex-row gap-8 w-full">
+          <!-- Card 1 -->
+          <div class="w-full md:w-1/2">
+              <div class="relative rounded-3xl p-px bg-gradient-to-br from-white/20 via-transparent to-white/10 h-full cursor-pointer animate-gradient-shift" @click="handleServiceClick('tool')">
+                  <div class="relative bg-gradient-to-br from-white/10 via-black to-white/10 rounded-[1.45rem] p-8 h-full animate-gradient-shift">
+                      <h3 class="text-2xl font-bold text-white mb-4">Инструмент для повышения осознанности</h3>
+                      <p class="text-white/70 mb-12">
+                          Веб-приложение, в котором ты удобно и наглядно отслеживаешь что угодно, происходящее у тебя в жизни, а после делаешь по этому выводы и становишься осознаннее и потенциально счастливее
+                      </p>
+                      <div class="absolute bottom-8 right-8 text-white/60">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                          </svg>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="w-full md:w-1/2">
+              <div class="relative rounded-3xl p-px bg-gradient-to-br from-white/20 via-transparent to-white/10 h-full cursor-pointer animate-gradient-shift">
+                  <div class="relative bg-gradient-to-br from-white/10 via-black to-white/10 rounded-[1.45rem] p-8 h-full animate-gradient-shift">
+                      <h3 class="text-2xl font-bold text-white mb-4">Социальный дневник чувств</h3>
+                      <p class="text-white/70 mb-12">
+                          Телеграм-бот, в котором ты совместно с социумом делишься своими чувствами, получаешь поддержку, качаешь насмотренность, смотришь статистику, делаешь выводы и становишься осознаннее и потенциально счастливее
+                      </p>
+                      <div class="absolute bottom-8 right-8 text-white/60">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                          </svg>
+                      </div>
+                  </div>
+              </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Details Section -->
+    <section class="min-h-screen w-full bg-black flex flex-col items-center px-4 sm:px-8 py-12">
+      <div class="w-full text-center">
+        <h2 class="text-5xl font-bold text-white uppercase tracking-widest">Подробно</h2>
+      </div>
+      <div class="flex items-center justify-center h-full mt-8">
+        <p class="font-mono text-4xl animate-pulse text-white/70">Чуть-чуть попозже...</p>
+      </div>
+    </section>
+
     <!-- Registration Section -->
+    <!--
     <section class="min-h-screen w-full bg-black flex flex-col items-center justify-center px-4 sm:px-8 py-12">
-      <!-- Hero Text -->
+      Hero Text
       <div class="max-w-lg text-center mb-8 sm:mb-14 px-4">
         <h1 class="text-2xl sm:text-3xl font-bold text-white">
           Привет ещё раз
@@ -70,14 +130,14 @@
         </p>
       </div>
 
-      <!-- Registration Form -->
+      Registration Form
       <div class="w-full max-w-md p-6 rounded-lg backdrop-blur-sm border border-white">
         <h2 class="text-lg font-semibold text-white text-center mb-4">
           Регистрация
         </h2>
 
         <form @submit.prevent="handleRegister" class="space-y-4">
-          <!-- <div>
+          <div>
             <label for="username" class="block text-sm font-medium text-white/80">
               Имя пользователя
             </label>
@@ -86,10 +146,10 @@
               id="username"
               type="text"
               required
-              placeholder="Введите имя пользователя"
+              placeholder="Введи имя пользователя"
               class="mt-1 w-full px-3 py-2 border bg-black border-white rounded-lg focus:outline-none focus:border-white/50 text-white placeholder:text-white/50"
             />
-          </div> -->
+          </div>
 
           <div>
             <label for="email" class="block text-sm font-medium text-white/80">
@@ -100,7 +160,7 @@
               id="email"
               type="email"
               required
-              placeholder="Введите почту"
+              placeholder="Введи почту"
               class="mt-1 w-full px-3 py-2 border bg-black border-white rounded-lg focus:outline-none focus:border-white/50 text-white placeholder:text-white/50"
             />
           </div>
@@ -114,7 +174,7 @@
               id="password"
               type="password"
               required
-              placeholder="Введите пароль"
+              placeholder="Введи пароль"
               class="mt-1 w-full px-3 py-2 border bg-black border-white rounded-lg focus:outline-none focus:border-white/50 text-white placeholder:text-white/50"
             />
           </div>
@@ -134,7 +194,9 @@
           </router-link>
         </div>
       </div>
-    </section>
+    </section> -->
+
+
   </div>
 </template>
 
@@ -203,6 +265,28 @@ const handleRegister = async () => {
         errorMessage.value = error.message;
     }
 };
+
+const handleServiceClick = async (serviceType) => {
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/users/me`, {
+      credentials: 'include'
+    });
+    
+    if (response.ok) {
+      // User is logged in, navigate to the appropriate page
+      if (serviceType === 'tool') {
+        router.push('/profile');
+      }
+    } else {
+      // User is not logged in, show registration form
+      router.push('/login');
+    }
+  } catch (error) {
+    console.error('Error checking authentication:', error);
+    router.push('/login');
+  }
+};
+
 const handleScroll = () => {
   const currentScrollPosition = window.scrollY || document.documentElement.scrollTop
   
@@ -212,6 +296,13 @@ const handleScroll = () => {
   isNavbarVisible.value = currentScrollPosition < lastScrollPosition
   lastScrollPosition = currentScrollPosition
 }
+
+const scrollToServices = () => {
+  const servicesSection = document.getElementById('services');
+  if (servicesSection) {
+    servicesSection.scrollIntoView({ behavior: 'smooth' });
+  }
+};
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
@@ -228,7 +319,24 @@ onUnmounted(() => {
   100% { transform: rotate(360deg); }
 }
 
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 .animate-gradient-rotate {
   animation: gradient-rotate 20s linear infinite;
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
 }
 </style>

@@ -1,8 +1,14 @@
 <template>
   <div class="w-full">
-    <div v-if="error" class="p-4 text-xs sm:text-sm text-center text-red-800 border border-red-300 rounded-lg bg-red-50" role="alert">
+    <div v-if="loading" class="p-4 text-xs sm:text-xs text-center text-gray-500 border border-gray-300 rounded-lg bg-gray-50">
+      Загрузка данных...
+    </div>
+    <div v-else-if="error" class="p-4 text-xs sm:text-xs text-center text-red-800 border border-red-300 rounded-lg bg-red-50" role="alert">
       <p>На сервере что-то сломалось, данные не достались из базы данных :(</p>
       <p><a href="https://t.me/pvlppv" class="text-blue-600 hover:text-blue-800">Напишите мне</a>, я починю.</p>
+    </div>
+    <div v-else-if="!sessionData || sessionData.length === 0" class="p-4 text-xs sm:text-xs text-center text-gray-600 border border-gray-300 rounded-lg bg-gray-50">
+      Добавь хоть одну запись, чтобы увидеть визуализацию
     </div>
     <div v-else class="qalendar-wrapper is-light-mode">
       <Qalendar :selected-date="new Date()" :events="events" :config="config"/>
@@ -31,6 +37,8 @@ const apiBaseUrl = import.meta.env.VITE_APP_API_BASE_URL
 const events = ref([])
 const error = ref(null)
 const lastActivity = ref(null)
+const loading = ref(true)
+const sessionData = ref([])
 
 // Process session data into Qalendar-compatible format
 const processEvents = (data) => {
@@ -40,24 +48,34 @@ const processEvents = (data) => {
   lastActivity.value = sortedData[sortedData.length - 1]
 
   return sortedData.map((item, index) => {
-    // Parse the datetime string and format it
-    const startDate = new Date(item.datetime)
-    // Adjust for Moscow timezone (UTC+3)
-    const moscowOffset = 3 * 60 * 60 * 1000 // 3 hours in milliseconds
-    const moscowTime = new Date(startDate.getTime() + moscowOffset)
+    // Parse the datetime string and format it for UTC
+    let dtStr = item.datetime.toString().replace(' ', 'T');
+    if (!dtStr.endsWith('Z')) {
+      dtStr += 'Z';
+    }
+    const startDate = new Date(dtStr);
     
-    const start = `${moscowTime.getFullYear()}-${String(moscowTime.getMonth() + 1).padStart(2, '0')}-${String(moscowTime.getDate()).padStart(2, '0')} ${String(moscowTime.getHours()).padStart(2, '0')}:${String(moscowTime.getMinutes()).padStart(2, '0')}`
+    // Adjust for Moscow timezone (UTC+3)
+    const moscowTime = new Date(startDate.getTime());
+    moscowTime.setUTCHours(moscowTime.getUTCHours() + 3);
+    
+    const start = `${moscowTime.getUTCFullYear()}-${String(moscowTime.getUTCMonth() + 1).padStart(2, '0')}-${String(moscowTime.getUTCDate()).padStart(2, '0')} ${String(moscowTime.getUTCHours()).padStart(2, '0')}:${String(moscowTime.getUTCMinutes()).padStart(2, '0')}`
 
     let end
     if (index === sortedData.length - 1 || 
-        new Date(sortedData[index + 1].datetime).toDateString() !== startDate.toDateString()) {
+        new Date(sortedData[index + 1].datetime).toDateString() !== new Date(item.datetime).toDateString()) {
       // Last activity of the day, stretch to 23:59
       end = `${start.split(' ')[0]} 23:59`
     } else {
       // Set end time to the start time of the next activity
-      const nextStartDate = new Date(sortedData[index + 1].datetime)
-      const nextMoscowTime = new Date(nextStartDate.getTime() + moscowOffset)
-      end = `${nextMoscowTime.getFullYear()}-${String(nextMoscowTime.getMonth() + 1).padStart(2, '0')}-${String(nextMoscowTime.getDate()).padStart(2, '0')} ${String(nextMoscowTime.getHours()).padStart(2, '0')}:${String(nextMoscowTime.getMinutes()).padStart(2, '0')}`
+      let nextDtStr = sortedData[index + 1].datetime.toString().replace(' ', 'T');
+      if (!nextDtStr.endsWith('Z')) {
+        nextDtStr += 'Z';
+      }
+      const nextStartDate = new Date(nextDtStr);
+      const nextMoscowTime = new Date(nextStartDate.getTime());
+      nextMoscowTime.setUTCHours(nextMoscowTime.getUTCHours() + 3);
+      end = `${nextMoscowTime.getUTCFullYear()}-${String(nextMoscowTime.getUTCMonth() + 1).padStart(2, '0')}-${String(nextMoscowTime.getUTCDate()).padStart(2, '0')} ${String(nextMoscowTime.getUTCHours()).padStart(2, '0')}:${String(nextMoscowTime.getUTCMinutes()).padStart(2, '0')}`
     }
 
     return {
@@ -98,6 +116,7 @@ const config = computed(() => ({
 
 const fetchData = async () => {
   try {
+    loading.value = true
     error.value = null
     
     const tableName = `session_${props.sessionId}_data`
@@ -112,18 +131,24 @@ const fetchData = async () => {
       console.error('Error fetching data:', fetchError.value)
       error.value = 'Не удалось загрузить данные'
       events.value = []
+      sessionData.value = []
       return
     }
     
     if (fetchData.value) {
+      sessionData.value = fetchData.value
       events.value = processEvents(fetchData.value)
     } else {
       events.value = []
+      sessionData.value = []
     }
   } catch (error) {
     console.error('Error in fetchData:', error)
     error.value = 'Произошла ошибка при загрузке данных'
     events.value = []
+    sessionData.value = []
+  } finally {
+    loading.value = false
   }
 }
 

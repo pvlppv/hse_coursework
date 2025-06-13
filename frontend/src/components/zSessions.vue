@@ -11,12 +11,12 @@
         
 
         <!-- Sessions List -->
-        <div v-else class="space-y-4">
+        <div v-else>
            <div v-if="activeSessions.length" id="active-sessions-list-container">
             <div 
               v-for="session in sortedActiveSessions"
               :key="session.id"
-              class="group relative border border-gray-300 rounded-lg p-4 hover:shadow-lg transition-all duration-200 bg-white"
+              class="group relative border border-gray-300 rounded-lg p-4 hover:shadow-lg transition-all duration-200 bg-white mb-5"
             >
             <div class="flex justify-between items-start mb-2">
               <div>
@@ -24,47 +24,51 @@
                   <span class="relative flex h-3 w-3 ml-2">
                     <span 
                       v-if="session.is_active && !session.is_paused"
-                      class="animate-ping absolute h-full w-full rounded-full bg-green-500 opacity-75"
+                      class="animate-ping absolute h-full w-full rounded-full bg-green-200 opacity-75"
                     ></span>
                     <span 
                       class="relative rounded-full h-3 w-3"
                       :class="{
-                        'bg-green-500': session.is_active && !session.is_paused,
-                        'bg-yellow-500': session.is_active && session.is_paused,
-                        'bg-red-500': !session.is_active
+                        'bg-green-200': session.is_active && !session.is_paused,
+                        'bg-yellow-200': session.is_active && session.is_paused,
+                        'bg-red-200': !session.is_active
                       }"
                     ></span>
                   </span>
                   <h3 class="text-sm sm:text-sm font-semibold text-black">{{ session.title }}</h3>
                 </div>
+                <div v-if="session.goal_type" class="text-xs sm:text-xs text-gray-500 mt-1">
+                  <p><span class="font-medium">Цель: </span> 
+                    <span>{{ session.goal_type === 'observe' ? 'понаблюдать и понять' : 'провести эксперимент' }}</span>
+                    <span v-if="session.goal_type === 'experiment' && session.metric"> ({{ formatMetric(session.metric) }}) </span>
+                  </p>
+                </div>
                 <p class="text-xs sm:text-xs text-gray-500 mt-1">
-                  Осталось {{ formatDurationRemaining(session.time_remaining) }}
+                  <span class="font-medium">Осталось:</span> {{ formatDurationRemaining(session.time_remaining) }}
                 </p>
               </div>
               <div class="flex gap-1">
-                <Tooltip :text="session.is_paused ? 'Возобновить сеанс' : 'Поставить сеанс на паузу'">
-                  <button
-                    @click.stop="pauseSession(session.id, !session.is_paused)"
-                    class="p-1 hover:bg-gray-100 rounded-full"
-                    >
-                    <svg class="w-4 h-4 text-gray-600" viewBox="0 0 24 24">
-                      <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/>
-                      <path d='M9 9h2v6H9zm4 0h2v6h-2z'/>
-                    </svg>
-                  </button>
-                </Tooltip>
-                <Tooltip text="Редактировать сеанс">
-                  <button
-                    @click.stop="openEditModal(session)"
-                    class="p-1 hover:bg-gray-100 rounded-full">
-                    <svg class="w-4 h-4 text-gray-600" viewBox="0 0 24 24">
-                      <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/>
-                      <path d="M11 11h2v6h-2zm0-4h2v2h-2z"/>
-                    </svg>
-                  </button>
-                </Tooltip>
-                <Tooltip text="Скрыть сеанс">
-                  <button
+                <button
+                  v-tippy="session.is_paused ? 'Возобновить сеанс' : 'Поставить сеанс на паузу'"
+                  @click.stop="pauseSession(session.id, !session.is_paused)"
+                  class="p-1 hover:bg-gray-100 rounded-full"
+                  >
+                  <svg class="w-4 h-4 text-gray-600" viewBox="0 0 24 24">
+                    <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/>
+                    <path d='M9 9h2v6H9zm4 0h2v6h-2z'/>
+                  </svg>
+                </button>
+                <button
+                  v-tippy="'Редактировать сеанс'"
+                  @click.stop="openEditModal(session)"
+                  class="p-1 hover:bg-gray-100 rounded-full">
+                  <svg class="w-4 h-4 text-gray-600" viewBox="0 0 24 24">
+                    <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/>
+                    <path d="M11 11h2v6h-2zm0-4h2v2h-2z"/>
+                  </svg>
+                </button>
+                <button
+                  v-tippy="'Скрыть сеанс'"
                     @click.stop="openSoftDeleteModal(session)"
                     class="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-red-600 transition-colors"
                   >
@@ -72,8 +76,7 @@
                     <path d="M9.172 16.242L12 13.414l2.828 2.828 1.414-1.414L13.414 12l2.828-2.828-1.414-1.414L12 10.586 9.172 7.758 7.758 9.172 10.586 12l-2.828 2.828z"/>
                     <path d="M12 22c5.514 0 10-4.486 10-10S17.514 2 12 2 2 6.486 2 12s4.486 10 10 10zm0-18c4.411 0 8 3.589 8 8s-3.589 8-8 8-8-3.589-8-8 3.589-8 8-8z"/>
                   </svg>
-                  </button>
-                </Tooltip>
+                </button>
               </div>
             </div>
             <button 
@@ -197,51 +200,61 @@
                     На паузе
                   </span>
                 </div>
+                <div v-if="session.goal_type" class="text-xs sm:text-xs text-gray-500 mt-1">
+                  <p><span class="font-medium">Цель: </span> 
+                    <span>{{ session.goal_type === 'observe' ? 'понаблюдать и понять' : 'провести эксперимент' }}</span>
+                    <span v-if="session.goal_type === 'experiment' && session.metric"> ({{ formatMetric(session.metric) }}) </span>
+                  </p>
+                </div>
                 <p class="text-xs sm:text-xs text-gray-500 mt-1">
-                  Осталось {{ formatDurationRemaining(session.time_remaining) }}
+                  <span class="font-medium">Осталось:</span> {{ formatDurationRemaining(session.time_remaining) }}
                 </p>
               </div>
               <div class="flex gap-1">
-                <Tooltip text="Возобновить сеанс">
-                  <button
-                    @click.stop="session.is_active ? pauseSession(session.id, !session.is_paused) : restoreSession(session.id)"
-                    class="p-1 hover:bg-gray-100 rounded-full"
-                    >
-                    <svg 
-                      class="w-4 h-4" 
-                      :class="{
-                        'text-gray-600': session.is_active,
-                        'text-green-600': !session.is_active
-                      }"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/>
-                      <path v-if="session.is_active" d='m9 17 8-5-8-5z'/>
-                      <path v-else d="m6.293 13.293 1.414 1.414L12 10.414l4.293 4.293 1.414-1.414L12 7.586z"/>
-                    </svg>
-                  </button>
-                </Tooltip>
-                <Tooltip text="Редактировать сеанс">
-                  <button
-                    @click.stop="openEditModal(session)"
-                    class="p-1 hover:bg-gray-100 rounded-full">
-                    <svg class="w-4 h-4 text-gray-600" viewBox="0 0 24 24">
-                      <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/>
-                      <path d="M11 11h2v6h-2zm0-4h2v2h-2z"/>
-                    </svg>
-                  </button>
-                </Tooltip>
-                <Tooltip text="Удалить сеанс">
-                  <button
-                    @click.stop="openDeleteModal(session)"
-                    class="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-red-600 transition-colors"
+                <button
+                  v-if="session.goal_type === 'experiment' && !session.is_active"
+                  v-tippy="'Посмотреть результаты'"
+                  @click.stop="openResultsModal(session)"
+                  class="p-1 hover:bg-gray-100 rounded-full text-blue-600"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"></path><path d="m14.387 9.387-3 3-1.387-1.387L8.586 12.414 11.387 15.215 15.801 10.8z"></path></svg>
+                </button>
+                <button
+                  @click.stop="session.is_active ? pauseSession(session.id, !session.is_paused) : restoreSession(session.id)"
+                  class="p-1 hover:bg-gray-100 rounded-full"
                   >
-                  <svg class="w-4 h-4" viewBox="0 0 24 24">
-                    <path d="M9.172 16.242L12 13.414l2.828 2.828 1.414-1.414L13.414 12l2.828-2.828-1.414-1.414L12 10.586 9.172 7.758 7.758 9.172 10.586 12l-2.828 2.828z"/>
-                    <path d="M12 22c5.514 0 10-4.486 10-10S17.514 2 12 2 2 6.486 2 12s4.486 10 10 10zm0-18c4.411 0 8 3.589 8 8s-3.589 8-8 8-8-3.589-8-8 3.589-8 8-8z"/>
+                  <svg 
+                    class="w-4 h-4" 
+                    :class="{
+                      'text-gray-600': session.is_active,
+                      'text-green-600': !session.is_active
+                    }"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/>
+                    <path v-if="session.is_active" d='m9 17 8-5-8-5z'/>
+                    <path v-else d="m6.293 13.293 1.414 1.414L12 10.414l4.293 4.293 1.414-1.414L12 7.586z"/>
                   </svg>
-                  </button>
-                </Tooltip>
+                </button>
+                <button
+                  v-tippy="'Редактировать сеанс'"
+                  @click.stop="openEditModal(session)"
+                  class="p-1 hover:bg-gray-100 rounded-full">
+                  <svg class="w-4 h-4 text-gray-600" viewBox="0 0 24 24">
+                    <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/>
+                    <path d="M11 11h2v6h-2zm0-4h2v2h-2z"/>
+                  </svg>
+                </button>
+                <button
+                  v-tippy="'Удалить сеанс'"
+                  @click.stop="openDeleteModal(session)"
+                  class="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-red-600 transition-colors"
+                >
+                <svg class="w-4 h-4" viewBox="0 0 24 24">
+                  <path d="M9.172 16.242L12 13.414l2.828 2.828 1.414-1.414L13.414 12l2.828-2.828-1.414-1.414L12 10.586 9.172 7.758 7.758 9.172 10.586 12l-2.828 2.828z"/>
+                  <path d="M12 22c5.514 0 10-4.486 10-10S17.514 2 12 2 2 6.486 2 12s4.486 10 10 10zm0-18c4.411 0 8 3.589 8 8s-3.589 8-8 8-8-3.589-8-8 3.589-8 8-8z"/>
+                </svg>
+                </button>
               </div>
             </div>
         </div>
@@ -281,12 +294,13 @@
             >
               <form @submit.prevent="saveSession" class="space-y-4">
                 <div class="space-y-1">
-                  <label class="text-sm sm:text-base font-medium flex items-center gap-2">
+                  <label @click.stop.prevent class="text-sm sm:text-base font-medium flex items-center gap-2">
                     <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">1</span>
                     Что отслеживаем?
                     <button 
                       type="button"
-                      @click.stop="showTitleHelp"
+                      v-tippy="'Название должно отражать то, что вы хотите отслеживать. Например: часы сна, количество свиданий, частота посещения магазинов и т.д.'"
+                      @click.stop
                       class="text-gray-400 hover:text-gray-600"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
@@ -305,12 +319,13 @@
                 </div>
                 
                 <div class="space-y-1">
-                  <label class="text-sm sm:text-base font-medium flex items-center gap-2">
+                  <label @click.stop.prevent class="text-sm sm:text-base font-medium flex items-center gap-2">
                     <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">2</span>
                     Сколько по времени отслеживаем?
                     <button 
+                      v-tippy="'Выберите период, который вам кажется подходящим для достижения вашей цели.'"
+                      @click.stop
                       type="button"
-                      @click="showDurationHelp"
                       class="text-gray-400 hover:text-gray-600"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
@@ -348,10 +363,60 @@
                 <div class="space-y-1">
                   <label class="text-sm sm:text-base font-medium flex items-center gap-2">
                     <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">3</span>
+                    С какой целью отслеживаем?
+                  </label>
+                  <div class="flex flex-col gap-4">
+                    <div class="flex gap-4">
+                      <button
+                        type="button"
+                        @click="editableSession.goalType = 'observe'"
+                        class="flex-1 p-2 text-xs sm:text-sm border rounded-lg hover:bg-gray-50 relative"
+                        :class="{ 'border-gray-500 bg-gray-50': editableSession.goalType === 'observe' }"
+                      >
+                        Понаблюдать и понять
+                      </button>
+                      <button
+                        type="button"
+                        @click="editableSession.goalType = 'experiment'"
+                        class="flex-1 p-2 text-xs sm:text-sm border rounded-lg hover:bg-gray-50 relative"
+                        :class="{ 'border-gray-500 bg-gray-50': editableSession.goalType === 'experiment' }"
+                      >
+                        Провести эксперимент
+                      </button>
+                    </div>
+                  </div>
+                  <!-- Metric Configuration Block -->
+                  <div v-if="editableSession.goalType === 'experiment' && editableSession.metric" class="space-y-3 mt-4 p-3 border rounded-lg bg-gray-50">
+                    <label class="text-xs sm:text-sm font-medium text-gray-700">Эксперимент успешен, если...</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
+                      <select v-model="editableSession.metric.type" class="w-full p-2 text-xs sm:text-sm border rounded-lg focus:border-gray-300 focus:ring-0">
+                        <option value="count">Количество записей</option>
+                        <option value="average">Среднее значение</option>
+                        <option value="sum">Сумма значений</option>
+                      </select>
+                      <select v-model="editableSession.metric.operator" class="w-full p-2 text-xs sm:text-sm border rounded-lg focus:border-gray-300 focus:ring-0">
+                        <option value=">=">&ge;</option>
+                        <option value="<=">&le;</option>
+                        <option value="==">=</option>
+                      </select>
+                      <input type="number" v-model.number="editableSession.metric.targetValue" placeholder="Цель" class="w-full p-2 text-xs sm:text-sm border rounded-lg focus:border-gray-300 focus:ring-0"/>
+                    </div>
+                    <div v-if="editableSession.metric.type === 'count'">
+                      <input type="text" v-model="editableSession.metric.filterValue" placeholder="Уточните значение для подсчета (необязательно)" class="mt-2 w-full p-2 text-xs sm:text-sm border rounded-lg focus:border-gray-300 focus:ring-0"/>
+                    </div>
+                     <p v-if="editableSession.metric.type === 'average' || editableSession.metric.type === 'sum'" class="text-xs text-gray-500 mt-2">
+                        Убедись, что будешь вводить только числа в поле "Значение" для этого сеанса.
+                      </p>
+                  </div>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="text-sm sm:text-base font-medium flex items-center gap-2">
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">4</span>
                     Как собираем данные?
                   </label>
                   <div class="flex flex-col gap-4">
-                    <div class="flex gap-6">
+                    <div class="flex gap-4">
                       <button
                         type="button"
                         @click="editableSession.data_collection_methods = ['manual']"
@@ -361,25 +426,27 @@
                         Вручную
                       </button>
                       <div class="flex-1 relative">
-                        <button
-                          type="button"
-                          disabled
-                          class="w-full p-2 text-xs sm:text-sm border rounded-lg opacity-50 cursor-not-allowed relative group"
-                        >
-                          Автоматически
-                          <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24">
-                              <path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10 .002 8H6v-8h12zm-9-2V7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9z"/>
-                            </svg>
-                          </div>
-                          <div class="absolute inset-0 flex items-center justify-center p-2">
-                            <img src="../assets/apple_health.svg" class="w-6 h-6 absolute -top-2 -left-2 -rotate-12" alt="Apple Health" />
-                            <img src="../assets/google_calendar.png" class="w-6 h-6 absolute -top-2 -right-2 rotate-12" alt="Google Calendar" />
-                            <img src="../assets/notion.png" class="w-6 h-6 absolute -bottom-2 -left-2 -rotate-12" alt="Notion" />
-                            <img src="../assets/telegram.png" class="w-6 h-6 absolute -bottom-2 -right-2 rotate-12" alt="Telegram" />
-                          </div>
-                          <div class="absolute inset-0 rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.5)]"></div>
-                        </button>
+                        <div class="flex-1 relative" v-tippy="'Скоро будет доступен автоматический сбор данных с сторонних сервисов'">
+                          <button
+                            type="button"
+                            disabled
+                            class="w-full p-2 text-xs sm:text-sm border rounded-lg opacity-50 cursor-not-allowed relative group"
+                          >
+                            Автоматически
+                            <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
+                              <svg class="w-4 h-4" viewBox="0 0 24 24">
+                                <path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10 .002 8H6v-8h12zm-9-2V7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9z"/>
+                              </svg>
+                            </div>
+                            <div class="absolute inset-0 flex items-center justify-center p-2">
+                              <img src="../assets/apple_health.svg" class="w-6 h-6 absolute -top-2 -left-2 -rotate-12" alt="Apple Health" />
+                              <img src="../assets/google_calendar.png" class="w-6 h-6 absolute -top-2 -right-2 rotate-12" alt="Google Calendar" />
+                              <img src="../assets/notion.png" class="w-6 h-6 absolute -bottom-2 -left-2 -rotate-12" alt="Notion" />
+                              <img src="../assets/telegram.png" class="w-6 h-6 absolute -bottom-2 -right-2 rotate-12" alt="Telegram" />
+                            </div>
+                            <div class="absolute inset-0 rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.5)]"></div>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -387,7 +454,7 @@
 
                 <div class="space-y-1">
                   <label class="text-sm sm:text-base font-medium flex items-center gap-2">
-                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">4</span>
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">5</span>
                     Как визуализируем данные?
                   </label>
                   <div class="grid grid-cols-2 gap-4">
@@ -425,11 +492,11 @@
                         </div>
                       </div>
                       <div 
-                        v-if="editableSession.visualization_preferences.includes(viz.id.toString())"
                         class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                       >
                         <div class="flex gap-2">
-                          <button 
+                          <button
+                            v-tippy="'Посмотреть описание графика'"
                             @click.stop="openVizModal(viz, $event)"
                             class="p-1.5 bg-white rounded-full shadow-lg hover:bg-gray-50 border border-gray-300"
                           >
@@ -445,42 +512,46 @@
 
                 <div class="space-y-1">
                   <label class="text-sm sm:text-base font-medium flex items-center gap-2">
-                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">5</span>
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">6</span>
                     Как анализируем данные?
                   </label>
                   <div class="flex flex-col gap-4">
-                    <div class="flex gap-6">
+                    <div class="flex gap-4">
                       <div class="flex-1 relative">
-                        <button
-                          type="button"
-                          disabled
-                          class="w-full p-2 text-xs sm:text-sm border rounded-lg opacity-50 cursor-not-allowed relative group"
-                        >
-                          Через инструменты
-                          <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24">
-                              <path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10 .002 8H6v-8h12zm-9-2V7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9z"/>
-                            </svg>
-                          </div>
-                        </button>
+                        <div class="flex-1 relative" v-tippy="'Скоро будет доступен анализ данных с помощью аналитических инструментов'">
+                          <button
+                            type="button"
+                            disabled
+                            class="w-full p-2 text-xs sm:text-sm border rounded-lg opacity-50 cursor-not-allowed relative group"
+                          >
+                            Через инструменты
+                            <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
+                              <svg class="w-4 h-4" viewBox="0 0 24 24">
+                                <path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10 .002 8H6v-8h12zm-9-2V7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9z"/>
+                              </svg>
+                            </div>
+                          </button>
+                        </div>
                       </div>
                       <div class="flex-1 relative">
-                        <button
-                          type="button"
-                          disabled
-                          class="w-full p-2 text-xs sm:text-sm border rounded-lg opacity-50 cursor-not-allowed relative group"
-                        >
-                          Через ИИ
-                          <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24">
-                              <path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10 .002 8H6v-8h12zm-9-2V7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9z"/>
+                        <div class="flex-1 relative" v-tippy="'Скоро будет доступен анализ данных с помощью ИИ'">
+                          <button
+                            type="button"
+                            disabled
+                            class="w-full p-2 text-xs sm:text-sm border rounded-lg opacity-50 cursor-not-allowed relative group"
+                          >
+                            Через ИИ
+                            <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
+                              <svg class="w-4 h-4" viewBox="0 0 24 24">
+                                <path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10 .002 8H6v-8h12zm-9-2V7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9z"/>
+                              </svg>
+                            </div>
+                            <svg class="w-6 h-6 absolute -top-2 -right-2" viewBox="0 0 24 24" transform="scale(-1, 1)">
+                              <path d="m11 4-.5-1-.5 1-1 .125.834.708L9.5 6l1-.666 1 .666-.334-1.167.834-.708zm8.334 10.666L18.5 13l-.834 1.666-1.666.209 1.389 1.181L16.834 18l1.666-1.111L20.166 18l-.555-1.944L21 14.875zM6.667 6.333 6 5l-.667 1.333L4 6.5l1.111.944L4.667 9 6 8.111 7.333 9l-.444-1.556L8 6.5zM3.414 17c0 .534.208 1.036.586 1.414L5.586 20c.378.378.88.586 1.414.586s1.036-.208 1.414-.586L20 8.414c.378-.378.586-.88.586-1.414S20.378 5.964 20 5.586L18.414 4c-.756-.756-2.072-.756-2.828 0L4 15.586c-.378.378-.586.88-.586 1.414zM17 5.414 18.586 7 15 10.586 13.414 9 17 5.414z"/>
                             </svg>
-                          </div>
-                          <svg class="w-6 h-6 absolute -top-2 -right-2" viewBox="0 0 24 24" transform="scale(-1, 1)">
-                            <path d="m11 4-.5-1-.5 1-1 .125.834.708L9.5 6l1-.666 1 .666-.334-1.167.834-.708zm8.334 10.666L18.5 13l-.834 1.666-1.666.209 1.389 1.181L16.834 18l1.666-1.111L20.166 18l-.555-1.944L21 14.875zM6.667 6.333 6 5l-.667 1.333L4 6.5l1.111.944L4.667 9 6 8.111 7.333 9l-.444-1.556L8 6.5zM3.414 17c0 .534.208 1.036.586 1.414L5.586 20c.378.378.88.586 1.414.586s1.036-.208 1.414-.586L20 8.414c.378-.378.586-.88.586-1.414S20.378 5.964 20 5.586L18.414 4c-.756-.756-2.072-.756-2.828 0L4 15.586c-.378.378-.586.88-.586 1.414zM17 5.414 18.586 7 15 10.586 13.414 9 17 5.414z"/>
-                          </svg>
-                          <div class="absolute inset-0 rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.5)]"></div>
-                        </button>
+                            <div class="absolute inset-0 rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.5)]"></div>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -547,12 +618,13 @@
             >
               <form @submit.prevent="addSession" class="space-y-4">
                 <div class="space-y-1" id="new-session-title-input">
-                  <label class="text-sm sm:text-base font-medium flex items-center gap-2">
+                  <label @click.stop.prevent class="text-sm sm:text-base font-medium flex items-center gap-2">
                     <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">1</span>
                     Что будем отслеживать?
                     <button 
                       type="button"
-                      @click.stop="showTitleHelp"
+                      v-tippy="'Название должно отражать то, что вы хотите отслеживать. Например: часы сна, количество свиданий, частота посещения магазинов и т.д.'"
+                      @click.stop
                       class="text-gray-400 hover:text-gray-600"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
@@ -571,12 +643,13 @@
                 </div>
                 
                 <div class="space-y-1" id="new-session-duration-input">
-                  <label class="text-sm sm:text-base font-medium flex items-center gap-2">
+                  <label @click.stop.prevent class="text-sm sm:text-base font-medium flex items-center gap-2">
                     <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">2</span>
                     Сколько по времени будем отслеживать?
                     <button 
+                      v-tippy="'Выберите период, который вам кажется подходящим для достижения вашей цели.'"
+                      @click.stop
                       type="button"
-                      @click="showDurationHelp"
                       class="text-gray-400 hover:text-gray-600"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
@@ -611,13 +684,63 @@
                   </div>
                 </div>
 
-                <div class="space-y-1" id="new-session-data-collection-methods-input">
+                <div class="space-y-1" id="new-session-goal-input">
                   <label class="text-sm sm:text-base font-medium flex items-center gap-2">
                     <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">3</span>
+                    С какой целью будем отслеживать?
+                  </label>
+                  <div class="flex flex-col gap-4">
+                    <div class="flex gap-4">
+                      <button
+                        type="button"
+                        @click="newSession.goalType = 'observe'"
+                        class="flex-1 p-2 text-xs sm:text-sm border rounded-lg hover:bg-gray-50 relative"
+                        :class="{ 'border-gray-500 bg-gray-50': newSession.goalType === 'observe' }"
+                      >
+                        Понаблюдать и понять
+                      </button>
+                      <button
+                        type="button"
+                        @click="newSession.goalType = 'experiment'"
+                        class="flex-1 p-2 text-xs sm:text-sm border rounded-lg hover:bg-gray-50 relative"
+                        :class="{ 'border-gray-500 bg-gray-50': newSession.goalType === 'experiment' }"
+                      >
+                        Провести эксперимент
+                      </button>
+                    </div>
+                  </div>
+                  <!-- Metric Configuration Block -->
+                  <div v-if="newSession.goalType === 'experiment' && newSession.metric" class="space-y-3 mt-4 p-3 border rounded-lg bg-gray-50">
+                    <label class="text-xs sm:text-sm font-medium text-gray-700">Эксперимент успешен, если...</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
+                      <select v-model="newSession.metric.type" class="w-full p-2 text-xs sm:text-sm border rounded-lg focus:border-gray-300 focus:ring-0">
+                        <option value="count">Количество записей</option>
+                        <option value="average">Среднее значение</option>
+                        <option value="sum">Сумма значений</option>
+                      </select>
+                      <select v-model="newSession.metric.operator" class="w-full p-2 text-xs sm:text-sm border rounded-lg focus:border-gray-300 focus:ring-0">
+                        <option value=">=">&ge;</option>
+                        <option value="<=">&le;</option>
+                        <option value="==">=</option>
+                      </select>
+                      <input type="number" v-model.number="newSession.metric.targetValue" placeholder="Цель" class="w-full p-2 text-xs sm:text-sm border rounded-lg focus:border-gray-300 focus:ring-0"/>
+                    </div>
+                    <div v-if="newSession.metric.type === 'count'">
+                      <input type="text" v-model="newSession.metric.filterValue" placeholder="Уточните значение для подсчета (необязательно)" class="mt-2 w-full p-2 text-xs sm:text-sm border rounded-lg focus:border-gray-300 focus:ring-0"/>
+                    </div>
+                     <p v-if="newSession.metric.type === 'average' || newSession.metric.type === 'sum'" class="text-xs text-gray-500 mt-2">
+                        Убедись, что будешь вводить только числа в поле "Значение" для этого сеанса.
+                      </p>
+                  </div>
+                </div>
+
+                <div class="space-y-1" id="new-session-data-collection-methods-input">
+                  <label class="text-sm sm:text-base font-medium flex items-center gap-2">
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">4</span>
                     Как будем собирать данные?
                   </label>
                   <div class="flex flex-col gap-4">
-                    <div class="flex gap-6">
+                    <div class="flex gap-4">
                       <button
                         type="button"
                         @click="newSession.data_collection_methods = ['manual']"
@@ -627,25 +750,27 @@
                         Вручную
                       </button>
                       <div class="flex-1 relative">
-                        <button
-                          type="button"
-                          disabled
-                          class="w-full p-2 text-xs sm:text-sm border rounded-lg opacity-50 cursor-not-allowed relative group"
-                        >
-                          Автоматически
-                          <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24">
-                              <path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10 .002 8H6v-8h12zm-9-2V7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9z"/>
-                            </svg>
-                          </div>
-                          <div class="absolute inset-0 flex items-center justify-center p-2">
-                            <img src="../assets/apple_health.svg" class="w-6 h-6 absolute -top-2 -left-2 -rotate-12" alt="Apple Health" />
-                            <img src="../assets/google_calendar.png" class="w-6 h-6 absolute -top-2 -right-2 rotate-12" alt="Google Calendar" />
-                            <img src="../assets/notion.png" class="w-6 h-6 absolute -bottom-2 -left-2 -rotate-12" alt="Notion" />
-                            <img src="../assets/telegram.png" class="w-6 h-6 absolute -bottom-2 -right-2 rotate-12" alt="Telegram" />
-                          </div>
-                          <div class="absolute inset-0 rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.5)]"></div>
-                        </button>
+                        <div class="flex-1 relative" v-tippy="'Скоро будет доступен автоматический сбор данных с сторонних сервисов'">
+                          <button
+                            type="button"
+                            disabled
+                            class="w-full p-2 text-xs sm:text-sm border rounded-lg opacity-50 cursor-not-allowed relative group"
+                          >
+                            Автоматически
+                            <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
+                              <svg class="w-4 h-4" viewBox="0 0 24 24">
+                                <path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10 .002 8H6v-8h12zm-9-2V7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9z"/>
+                              </svg>
+                            </div>
+                            <div class="absolute inset-0 flex items-center justify-center p-2">
+                              <img src="../assets/apple_health.svg" class="w-6 h-6 absolute -top-2 -left-2 -rotate-12" alt="Apple Health" />
+                              <img src="../assets/google_calendar.png" class="w-6 h-6 absolute -top-2 -right-2 rotate-12" alt="Google Calendar" />
+                              <img src="../assets/notion.png" class="w-6 h-6 absolute -bottom-2 -left-2 -rotate-12" alt="Notion" />
+                              <img src="../assets/telegram.png" class="w-6 h-6 absolute -bottom-2 -right-2 rotate-12" alt="Telegram" />
+                            </div>
+                            <div class="absolute inset-0 rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.5)]"></div>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -653,7 +778,7 @@
 
                 <div class="space-y-1" id="new-session-visualization-preferences-input">
                   <label class="text-sm sm:text-base font-medium flex items-center gap-2">
-                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">4</span>
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">5</span>
                     Как будем визуализировать данные?
                   </label>
                   <div class="grid grid-cols-2 gap-4">
@@ -681,23 +806,21 @@
                             'bg-white border-gray-300': !newSession.visualization_preferences.includes(viz.id.toString())
                           }"
                         >
-                          <Tooltip text="Посмотреть описание визуализации">
-                            <svg 
-                              v-if="newSession.visualization_preferences.includes(viz.id.toString())"
-                              class="w-4 h-4 text-white" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                            </svg>
-                          </Tooltip>
+                          <svg 
+                            v-if="newSession.visualization_preferences.includes(viz.id.toString())"
+                            class="w-4 h-4 text-white" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                          </svg>
                         </div>
                       </div>
                       <div 
-                        v-if="newSession.visualization_preferences.includes(viz.id.toString())"
                         class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                       >
                         <div class="flex gap-2">
-                          <button 
+                          <button
+                            v-tippy="'Посмотреть описание графика'"
                             @click.stop="openVizModal(viz, $event)"
                             class="p-1.5 bg-white rounded-full shadow-lg hover:bg-gray-50 border border-gray-300"
                           >
@@ -713,42 +836,46 @@
 
                 <div class="space-y-1" id="new-session-analysis-methods-input">
                   <label class="text-sm sm:text-base font-medium flex items-center gap-2">
-                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">5</span>
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-sm">6</span>
                     Как будем анализировать данные?
                   </label>
                   <div class="flex flex-col gap-4">
-                    <div class="flex gap-6">
+                    <div class="flex gap-4">
                       <div class="flex-1 relative">
-                        <button
-                          type="button"
-                          disabled
-                          class="w-full p-2 text-xs sm:text-sm border rounded-lg opacity-50 cursor-not-allowed relative group"
-                        >
-                          Через инструменты
-                          <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24">
-                              <path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10 .002 8H6v-8h12zm-9-2V7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9z"/>
-                            </svg>
-                          </div>
-                        </button>
+                        <div class="flex-1 relative" v-tippy="'Скоро будет доступен анализ данных с помощью аналитических инструментов'">
+                          <button
+                            type="button"
+                            disabled
+                            class="w-full p-2 text-xs sm:text-sm border rounded-lg opacity-50 cursor-not-allowed relative group"
+                          >
+                            Через инструменты
+                            <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
+                              <svg class="w-4 h-4" viewBox="0 0 24 24">
+                                <path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10 .002 8H6v-8h12zm-9-2V7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9z"/>
+                              </svg>
+                            </div>
+                          </button>
+                        </div>
                       </div>
                       <div class="flex-1 relative">
-                        <button
-                          type="button"
-                          disabled
-                          class="w-full p-2 text-xs sm:text-sm border rounded-lg opacity-50 cursor-not-allowed relative group"
-                        >
-                          Через ИИ
-                          <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24">
-                              <path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10 .002 8H6v-8h12zm-9-2V7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9z"/>
+                        <div class="flex-1 relative" v-tippy="'Скоро будет доступен анализ данных с помощью ИИ'">
+                          <button
+                            type="button"
+                            disabled
+                            class="w-full p-2 text-xs sm:text-sm border rounded-lg opacity-50 cursor-not-allowed relative group"
+                          >
+                            Через ИИ
+                            <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
+                              <svg class="w-4 h-4" viewBox="0 0 24 24">
+                                <path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10 .002 8H6v-8h12zm-9-2V7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9z"/>
+                              </svg>
+                            </div>
+                            <svg class="w-6 h-6 absolute -top-2 -right-2" viewBox="0 0 24 24" transform="scale(-1, 1)">
+                              <path d="m11 4-.5-1-.5 1-1 .125.834.708L9.5 6l1-.666 1 .666-.334-1.167.834-.708zm8.334 10.666L18.5 13l-.834 1.666-1.666.209 1.389 1.181L16.834 18l1.666-1.111L20.166 18l-.555-1.944L21 14.875zM6.667 6.333 6 5l-.667 1.333L4 6.5l1.111.944L4.667 9 6 8.111 7.333 9l-.444-1.556L8 6.5zM3.414 17c0 .534.208 1.036.586 1.414L5.586 20c.378.378.88.586 1.414.586s1.036-.208 1.414-.586L20 8.414c.378-.378.586-.88.586-1.414S20.378 5.964 20 5.586L18.414 4c-.756-.756-2.072-.756-2.828 0L4 15.586c-.378.378-.586.88-.586 1.414zM17 5.414 18.586 7 15 10.586 13.414 9 17 5.414z"/>
                             </svg>
-                          </div>
-                          <svg class="w-6 h-6 absolute -top-2 -right-2" viewBox="0 0 24 24" transform="scale(-1, 1)">
-                            <path d="m11 4-.5-1-.5 1-1 .125.834.708L9.5 6l1-.666 1 .666-.334-1.167.834-.708zm8.334 10.666L18.5 13l-.834 1.666-1.666.209 1.389 1.181L16.834 18l1.666-1.111L20.166 18l-.555-1.944L21 14.875zM6.667 6.333 6 5l-.667 1.333L4 6.5l1.111.944L4.667 9 6 8.111 7.333 9l-.444-1.556L8 6.5zM3.414 17c0 .534.208 1.036.586 1.414L5.586 20c.378.378.88.586 1.414.586s1.036-.208 1.414-.586L20 8.414c.378-.378.586-.88.586-1.414S20.378 5.964 20 5.586L18.414 4c-.756-.756-2.072-.756-2.828 0L4 15.586c-.378.378-.586.88-.586 1.414zM17 5.414 18.586 7 15 10.586 13.414 9 17 5.414z"/>
-                          </svg>
-                          <div class="absolute inset-0 rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.5)]"></div>
-                        </button>
+                            <div class="absolute inset-0 rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.5)]"></div>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1005,22 +1132,6 @@
       </Transition>
     </Teleport>
 
-    <!-- InfoPopup Modal -->
-    <InfoPopup
-      ref="infoPopupRef"
-      title="Как понять, сколько по времени отслеживать сеанс?"
-      text="Выберите период, который вам кажется подходящим для достижения вашей цели."
-      @close="infoPopupRef?.hide()"
-    />
-
-    <!-- Title InfoPopup Modal -->
-    <InfoPopup
-      ref="titleInfoPopupRef"
-      title="Как понять, как назвать сеанс?"
-      text="Название должно отражать то, что вы хотите отслеживать. Например: часы сна, количество свиданий, частота посещения магазинов и т.д."
-      @close="titleInfoPopupRef?.hide()"
-    />
-
     <!-- SessionDatabase Modal -->
     <Teleport to="body">
       <Transition enter-active-class="transition duration-300" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition duration-300" leave-from-class="opacity-100" leave-to-class="opacity-0">
@@ -1051,19 +1162,78 @@
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Results Modal -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition duration-300"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div 
+          v-if="showResultsModal" 
+          @click="showResultsModal = false"
+          @wheel.prevent
+          @scroll.prevent
+          @touchmove.prevent
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-[9999]"
+        >
+          <div 
+            @click.stop
+            class="bg-white rounded-lg p-4 sm:p-6 w-full max-w-sm sm:max-w-lg max-h-[80vh] flex flex-col overflow-hidden"
+          >
+            <h3 class="text-lg font-semibold mb-4 text-center">Результаты: {{ sessionForResults?.title }}</h3>
+
+            <div v-if="results?.loading" class="text-center">
+              <p>Подсчитываем результаты...</p>
+            </div>
+
+            <div v-else-if="results?.error" class="text-center text-red-600">
+              <p>{{ results.error }}</p>
+            </div>
+
+            <div v-else-if="results" class="space-y-4 text-center">
+              <div class="p-4 rounded-lg" :class="results.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                <p class="font-bold text-lg">{{ results.success ? 'Эксперимент успешен!' : 'Эксперимент не удался' }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">Цель</p>
+                <p class="text-lg font-semibold">{{ formatMetric(results.metric) }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">Результат</p>
+                <p class="text-lg font-semibold">{{ results.actualValue }}</p>
+              </div>
+            </div>
+
+            <div class="flex justify-center gap-3 mt-6">
+              <button
+                @click="showResultsModal = false"
+                class="px-4 py-2 text-sm rounded-lg border hover:bg-gray-50"
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
   </div>
 </template>
   
 <script setup>
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { useFetch, declineWord } from '../composables/utils.js';
-import InfoPopup from './InfoPopup.vue'
-import SessionContactsDisplay from './SessionContactsDisplay.vue'
+import SessionVizRating from './SessionVizRating.vue'
 import SessionActivityHeatmapDisplay from './SessionActivityHeatmapDisplay.vue'
-import SessionCalendarDisplay from './SessionCalendarDisplay.vue'
+import SessionVizCalendar from './SessionVizCalendar.vue'
 import SessionBlogDisplay from './SessionBlogDisplay.vue'
 import SessionDatabase from './SessionDatabase.vue'
-import Tooltip from './Tooltip.vue'
+import { directive as VTippy } from 'vue-tippy'
 
 const apiBaseUrl = import.meta.env.VITE_APP_API_BASE_URL;
 
@@ -1088,7 +1258,9 @@ const editableSession = ref({
   title: '',
   end_time: null,
   data_collection_methods: ['manual'],
-  visualization_preferences: []
+  visualization_preferences: [],
+  goalType: 'observe',
+  metric: null
 })
 const deleteTargetId = ref(null)
 
@@ -1096,7 +1268,9 @@ const newSession = ref({
   title: '',
   end_time: null,
   data_collection_methods: ['manual'],
-  visualization_preferences: []
+  visualization_preferences: [],
+  goalType: 'observe',
+  metric: null
 })
 const showInactive = ref(false)
 const sortedActiveSessions = computed(() => {
@@ -1226,8 +1400,20 @@ const openEditModal = (session) => {
     title: session.title || '',
     end_time: session.end_time ? new Date(session.end_time).toISOString().slice(0, 16) : '',
     data_collection_methods: [...(session.data_collection_methods || [])],
-    visualization_preferences: [...(session.visualization_preferences || [])]
+    visualization_preferences: [...(session.visualization_preferences || [])],
+    goalType: session.goal_type || 'observe',
+    metric: session.metric ? { ...session.metric } : null
   }
+  // Ensure metric object exists if goalType is experiment
+  if (editableSession.value.goalType === 'experiment' && !editableSession.value.metric) {
+    editableSession.value.metric = {
+      type: 'count',
+      operator: '>=',
+      targetValue: 1,
+      filterValue: ''
+    };
+  }
+
   showEditModal.value = true
 }
 
@@ -1246,7 +1432,9 @@ const saveSession = async () => {
     title: editableSession.value.title,
     end_time: editableSession.value.end_time,
     data_collection_methods: editableSession.value.data_collection_methods,
-    visualization_preferences: editableSession.value.visualization_preferences
+    visualization_preferences: editableSession.value.visualization_preferences,
+    goal_type: editableSession.value.goalType,
+    metric: editableSession.value.metric
   })    
   showEditModal.value = false
 }
@@ -1257,7 +1445,9 @@ const addSession = async () => {
       title: newSession.value.title,
       end_time: newSession.value.end_time,
       data_collection_methods: newSession.value.data_collection_methods,
-      visualization_preferences: newSession.value.visualization_preferences
+      visualization_preferences: newSession.value.visualization_preferences,
+      goal_type: newSession.value.goalType,
+      metric: newSession.value.metric
     })
     showAddModal.value = false
     // Reset form
@@ -1265,7 +1455,9 @@ const addSession = async () => {
       title: '',
       end_time: null,
       data_collection_methods: ['manual'],
-      visualization_preferences: []
+      visualization_preferences: [],
+      goalType: 'observe',
+      metric: null
     }
   } catch (err) {
     error.value = err.message || 'Не удалось создать сеанс'
@@ -1378,12 +1570,14 @@ const createSession = async (sessionData) => {
     if (fetchError.value) throw fetchError.value
 
     const newSession = data.value
-    activeSessions.value.push(newSession)
 
-    // Create a single table for all visualizations
+    // Create a single table for all visualizations BEFORE adding to frontend state
     if (newSession.visualization_preferences.length > 0) {
       await createVizTable(newSession.id)
     }
+
+    // Only add to frontend state after table is created
+    activeSessions.value.push(newSession)
 
     return newSession
   } catch (err) {
@@ -1591,20 +1785,20 @@ onMounted(async () => {
 const visualizations = [
   {
     id: 1,
-    title: 'График дня',
-    description: 'Заносите данные и отслеживайте, сколько времени они занимают',
+    title: 'Интенсивность',
+    description: 'Визуализация показывает, как часто происходит событие. Подходит для отслеживания одного события. Идеально подходит для отслеживания одной повторяющейся привычки или активности.',
     image: new URL('../assets/viz3.png', import.meta.url).href
   },
   {
     id: 2,
-    title: 'Частота',
-    description: 'Заносите данные и отслеживайте, какие из них самые активные',
+    title: 'Рейтинг',
+    description: 'Визуализация показывает, какие из событий происходят чаще всего, а какие реже. Подходит для отслеживания нескольких событий. Подходит для отслеживания и сравнения нескольких разных событий в рамках одного сеанса.',
     image: new URL('../assets/viz2.png', import.meta.url).href
   },
   {
     id: 3,
-    title: 'График года',
-    description: 'Заносите данные и отслеживайте, как часто они происходят в течение года',
+    title: 'Календарь',
+    description: 'Визуализация показывает, когда именно происходят события, и сколько они длятся по времени. Подходит для отслеживания одного или нескольких событий. Позволяет увидеть общую картину по дням и часам.',
     image: new URL('../assets/viz1.png', import.meta.url).href
   }
 ]
@@ -1721,9 +1915,9 @@ const getVisualizationComponent = (type) => {
     case '1': // activity heatmap
       return SessionActivityHeatmapDisplay
     case '2': // contacts
-      return SessionContactsDisplay
+      return SessionVizRating
     case '3': // calendar
-      return SessionCalendarDisplay
+      return SessionVizCalendar
     case '4': // blog
       return SessionBlogDisplay
     default:
@@ -1797,6 +1991,130 @@ const showTitleHelp = () => {
   titleInfoPopupRef.value?.show()
 }
 
+watch(() => newSession.value.goalType, (newGoalType) => {
+  if (newGoalType === 'experiment' && !newSession.value.metric) {
+    newSession.value.metric = {
+      type: 'count',
+      operator: '>=',
+      targetValue: 1,
+      filterValue: ''
+    };
+  } else if (newGoalType === 'observe') {
+    newSession.value.metric = null;
+  }
+});
+
+watch(() => editableSession.value.goalType, (newGoalType) => {
+  if (newGoalType === 'experiment' && !editableSession.value.metric) {
+    editableSession.value.metric = {
+      type: 'count',
+      operator: '>=',
+      targetValue: 1,
+      filterValue: ''
+    };
+  } else if (newGoalType === 'observe') {
+    editableSession.value.metric = null;
+  }
+});
+
+const formatMetric = (metric) => {
+  if (!metric) return '';
+  
+  const typeMap = {
+    count: 'кол-во записей',
+    average: 'среднее значение',
+    sum: 'сумма значений'
+  };
+
+  const operatorMap = {
+    '>=': '≥',
+    '<=': '≤',
+    '==': '='
+  };
+
+  let description = typeMap[metric.type] || '';
+  if (metric.type === 'count' && metric.filterValue) {
+    description += ` "${metric.filterValue}"`;
+  }
+  const operator = operatorMap[metric.operator] || '';
+  const target = metric.targetValue;
+
+  return `${description} ${operator} ${target}`;
+};
+
+const showResultsModal = ref(false)
+const results = ref(null)
+const sessionForResults = ref(null)
+
+const calculateResults = async () => {
+  if (!sessionForResults.value || !sessionForResults.value.metric) {
+    results.value = { error: 'Метрика для этого сеанса не найдена.' };
+    return;
+  }
+
+  const session = sessionForResults.value;
+  const metric = session.metric;
+  results.value = { loading: true }; // Set loading state
+
+  try {
+    const tableName = `session_${session.id}_data`;
+    // Fetch all rows, not just a paginated list
+    const { data, error: fetchError, fetchData } = useFetch(
+      `${apiBaseUrl}/api/users/table/${tableName}/rows/`,
+      { credentials: 'include' }
+    );
+    await fetchData();
+
+    if (fetchError.value) {
+      throw new Error(fetchError.value);
+    }
+
+    const rows = data.value || [];
+    let actualValue = 0;
+
+    if (metric.type === 'count') {
+      if (metric.filterValue) {
+        actualValue = rows.filter(row => row.value === metric.filterValue).length;
+      } else {
+        actualValue = rows.length;
+      }
+    } else if (metric.type === 'average' || metric.type === 'sum') {
+      const numbers = rows.map(row => parseFloat(row.value)).filter(n => !isNaN(n));
+      if (numbers.length > 0) {
+        const sum = numbers.reduce((acc, val) => acc + val, 0);
+        if (metric.type === 'sum') {
+          actualValue = sum;
+        } else { // average
+          actualValue = sum / numbers.length;
+        }
+      }
+    }
+    
+    let success = false;
+    switch (metric.operator) {
+      case '>=': success = actualValue >= metric.targetValue; break;
+      case '<=': success = actualValue <= metric.targetValue; break;
+      case '==': success = actualValue == metric.targetValue; break;
+    }
+
+    results.value = {
+      success,
+      actualValue: Math.round(actualValue * 100) / 100, // round to 2 decimal places
+      targetValue: metric.targetValue,
+      metric: metric
+    };
+
+  } catch (err) {
+    results.value = { error: `Не удалось загрузить или рассчитать результаты: ${err.message}` };
+  }
+};
+
+const openResultsModal = (session) => {
+  sessionForResults.value = session;
+  showResultsModal.value = true;
+  results.value = null; // Reset previous results
+  calculateResults();
+};
 </script>
 
 <style>
@@ -1809,3 +2127,4 @@ const showTitleHelp = () => {
   opacity: 0;
 }
 </style>
+
